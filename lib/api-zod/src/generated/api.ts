@@ -8,7 +8,6 @@
 import * as zod from "zod";
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
@@ -77,3 +76,84 @@ export const ListCategoriesResponseItem = zod.object({
   count: zod.number(),
 });
 export const ListCategoriesResponse = zod.array(ListCategoriesResponseItem);
+
+/**
+ * @summary Admin login
+ */
+export const AdminLoginBody = zod.object({
+  password: zod.string(),
+});
+
+export const AdminLoginResponse = zod.object({
+  token: zod.string(),
+  message: zod.string(),
+});
+
+/**
+ * @summary Create a new bot
+ */
+export const CreateBotBody = zod.object({
+  username: zod.string(),
+  name: zod.string(),
+  description: zod.string(),
+  categoryId: zod.number(),
+  rating: zod.number(),
+  reviewCount: zod.number(),
+  isVerified: zod.boolean(),
+  isPremium: zod.boolean(),
+  tags: zod.array(zod.string()),
+  monthlyUsers: zod.number(),
+  iconEmoji: zod.string(),
+  telegramUrl: zod.string(),
+});
+
+/**
+ * @summary Update a bot
+ */
+export const UpdateBotParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateBotBody = zod.object({
+  username: zod.string(),
+  name: zod.string(),
+  description: zod.string(),
+  categoryId: zod.number(),
+  rating: zod.number(),
+  reviewCount: zod.number(),
+  isVerified: zod.boolean(),
+  isPremium: zod.boolean(),
+  tags: zod.array(zod.string()),
+  monthlyUsers: zod.number(),
+  iconEmoji: zod.string(),
+  telegramUrl: zod.string(),
+});
+
+export const UpdateBotResponse = zod.object({
+  id: zod.number(),
+  username: zod.string(),
+  name: zod.string(),
+  description: zod.string(),
+  category: zod.string(),
+  categoryId: zod.number(),
+  rating: zod.number(),
+  reviewCount: zod.number(),
+  isVerified: zod.boolean(),
+  isPremium: zod.boolean(),
+  tags: zod.array(zod.string()),
+  monthlyUsers: zod.number(),
+  iconEmoji: zod.string(),
+  telegramUrl: zod.string(),
+});
+
+/**
+ * @summary Delete a bot
+ */
+export const DeleteBotParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteBotResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string(),
+});

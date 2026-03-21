@@ -26,12 +26,41 @@ export interface Bot {
   telegramUrl: string;
 }
 
+export interface BotInput {
+  username: string;
+  name: string;
+  description: string;
+  categoryId: number;
+  rating: number;
+  reviewCount: number;
+  isVerified: boolean;
+  isPremium: boolean;
+  tags: string[];
+  monthlyUsers: number;
+  iconEmoji: string;
+  telegramUrl: string;
+}
+
 export interface Category {
   id: number;
   name: string;
   slug: string;
   emoji: string;
   count: number;
+}
+
+export interface AdminLoginRequest {
+  password: string;
+}
+
+export interface AdminLoginResponse {
+  token: string;
+  message: string;
+}
+
+export interface DeleteResponse {
+  success: boolean;
+  message: string;
 }
 
 export interface Error {

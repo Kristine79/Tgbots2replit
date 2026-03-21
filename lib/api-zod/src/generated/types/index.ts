@@ -6,8 +6,12 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./adminLoginRequest";
+export * from "./adminLoginResponse";
 export * from "./bot";
+export * from "./botInput";
 export * from "./category";
+export * from "./deleteResponse";
 export * from "./error";
 export * from "./healthStatus";
 export * from "./listBotsParams";

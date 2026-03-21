@@ -11,13 +11,14 @@ tags:
     description: Health operations
   - name: bots
     description: Telegram bots directory
+  - name: admin
+    description: Admin management
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -91,7 +92,136 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Category"
+  /admin/login:
+    post:
+      operationId: adminLogin
+      tags: [admin]
+      summary: Admin login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminLoginRequest"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminLoginResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/bots:
+    post:
+      operationId: createBot
+      tags: [admin]
+      summary: Create a new bot
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BotInput"
+      responses:
+        "201":
+          description: Bot created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bot"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/bots/{id}:
+    put:
+      operationId: updateBot
+      tags: [admin]
+      summary: Update a bot
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BotInput"
+      responses:
+        "200":
+          description: Bot updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bot"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteBot
+      tags: [admin]
+      summary: Delete a bot
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Bot deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
   schemas:
     HealthStatus:
       type: object
@@ -149,6 +279,49 @@ components:
         - monthlyUsers
         - iconEmoji
         - telegramUrl
+    BotInput:
+      type: object
+      properties:
+        username:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        categoryId:
+          type: integer
+        rating:
+          type: number
+          format: float
+        reviewCount:
+          type: integer
+        isVerified:
+          type: boolean
+        isPremium:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+        monthlyUsers:
+          type: integer
+        iconEmoji:
+          type: string
+        telegramUrl:
+          type: string
+      required:
+        - username
+        - name
+        - description
+        - categoryId
+        - rating
+        - reviewCount
+        - isVerified
+        - isPremium
+        - tags
+        - monthlyUsers
+        - iconEmoji
+        - telegramUrl
     Category:
       type: object
       properties:
@@ -168,6 +341,33 @@ components:
         - slug
         - emoji
         - count
+    AdminLoginRequest:
+      type: object
+      properties:
+        password:
+          type: string
+      required:
+        - password
+    AdminLoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        message:
+          type: string
+      required:
+        - token
+        - message
+    DeleteResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+        - success
+        - message
     Error:
       type: object
       properties:
