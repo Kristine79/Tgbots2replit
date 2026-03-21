@@ -50,9 +50,13 @@ export function BotForm({ bot, categories, token, onClose, onSuccess }: BotFormP
         telegramUrl: bot.telegramUrl,
       });
     } else {
-      setForm({ ...DEFAULT_FORM, categoryId: categories[0]?.id ?? 0 });
+      setForm((prev) => ({
+        ...DEFAULT_FORM,
+        categoryId: prev.categoryId || categories[0]?.id ?? 0,
+      }));
     }
-  }, [bot, categories]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bot]);
 
   const set = (field: keyof typeof DEFAULT_FORM, value: string | number | boolean) => {
     setForm((prev) => ({ ...prev, [field]: value }));
