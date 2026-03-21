@@ -6,13 +6,16 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { BotStatDailyViewsItem } from "./botStatDailyViewsItem";
+import type { BotStatGeoBreakdownItem } from "./botStatGeoBreakdownItem";
 
 export interface BotStat {
   botId: number;
   botName: string;
   botEmoji: string;
   totalViews: number;
+  uniqueVisitors: number;
   last7Days: number;
   last30Days: number;
   dailyViews: BotStatDailyViewsItem[];
+  geoBreakdown: BotStatGeoBreakdownItem[];
 }

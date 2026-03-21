@@ -46,14 +46,22 @@ export type BotStatDailyViewsItem = {
   views: number;
 };
 
+export type BotStatGeoBreakdownItem = {
+  country: string;
+  countryCode: string;
+  views: number;
+};
+
 export interface BotStat {
   botId: number;
   botName: string;
   botEmoji: string;
   totalViews: number;
+  uniqueVisitors: number;
   last7Days: number;
   last30Days: number;
   dailyViews: BotStatDailyViewsItem[];
+  geoBreakdown: BotStatGeoBreakdownItem[];
 }
 
 export interface Category {

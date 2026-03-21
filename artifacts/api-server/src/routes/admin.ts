@@ -93,7 +93,7 @@ router.post("/admin/bots", requireAdmin, async (req, res) => {
 });
 
 router.put("/admin/bots/:id", requireAdmin, async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id));
   if (isNaN(id)) {
     res.status(400).json({ message: "Invalid bot id" });
     return;
@@ -162,7 +162,7 @@ router.put("/admin/bots/:id", requireAdmin, async (req, res) => {
 });
 
 router.delete("/admin/bots/:id", requireAdmin, async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id));
   if (isNaN(id)) {
     res.status(400).json({ message: "Invalid bot id" });
     return;
@@ -206,6 +206,11 @@ router.get("/admin/stats", requireAdmin, async (_req, res) => {
         .from(botViewsTable)
         .where(eq(botViewsTable.botId, bot.id));
 
+      const [uniqueRow] = await db
+        .select({ count: sql<number>`count(distinct ${botViewsTable.ipHash})::int` })
+        .from(botViewsTable)
+        .where(eq(botViewsTable.botId, bot.id));
+
       const [last7Row] = await db
         .select({ count: sql<number>`count(*)::int` })
         .from(botViewsTable)
@@ -226,14 +231,31 @@ router.get("/admin/stats", requireAdmin, async (_req, res) => {
         .groupBy(sql`date_trunc('day', ${botViewsTable.viewedAt})`)
         .orderBy(sql`date_trunc('day', ${botViewsTable.viewedAt})`);
 
+      const geoRows = await db
+        .select({
+          country: sql<string>`coalesce(${botViewsTable.country}, 'Неизвестно')`,
+          countryCode: sql<string>`coalesce(${botViewsTable.countryCode}, 'XX')`,
+          views: sql<number>`count(*)::int`,
+        })
+        .from(botViewsTable)
+        .where(eq(botViewsTable.botId, bot.id))
+        .groupBy(botViewsTable.country, botViewsTable.countryCode)
+        .orderBy(sql`count(*) desc`);
+
       return {
         botId: bot.id,
         botName: bot.name,
         botEmoji: bot.iconEmoji,
         totalViews: totalRow?.count ?? 0,
+        uniqueVisitors: uniqueRow?.count ?? 0,
         last7Days: last7Row?.count ?? 0,
         last30Days: last30Row?.count ?? 0,
         dailyViews: dailyRows.map((r) => ({ date: r.date, views: r.views })),
+        geoBreakdown: geoRows.map((r) => ({
+          country: r.country,
+          countryCode: r.countryCode,
+          views: r.views,
+        })),
       };
     })
   );

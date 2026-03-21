@@ -35,6 +35,10 @@ export const botViewsTable = pgTable("bot_views", {
   id: serial("id").primaryKey(),
   botId: integer("bot_id").notNull().references(() => botsTable.id, { onDelete: "cascade" }),
   viewedAt: timestamp("viewed_at").notNull().defaultNow(),
+  ipHash: text("ip_hash"),
+  country: text("country"),
+  countryCode: text("country_code"),
+  city: text("city"),
 });
 
 export const insertBotSchema = createInsertSchema(botsTable).omit({ id: true });

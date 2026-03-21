@@ -12,6 +12,7 @@ export * from "./bot";
 export * from "./botInput";
 export * from "./botStat";
 export * from "./botStatDailyViewsItem";
+export * from "./botStatGeoBreakdownItem";
 export * from "./category";
 export * from "./deleteResponse";
 export * from "./error";

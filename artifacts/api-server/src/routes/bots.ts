@@ -1,7 +1,9 @@
+import { createHash } from "crypto";
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
 import { botsTable, categoriesTable, botViewsTable } from "@workspace/db/schema";
-import { ilike, eq, desc, asc, sql } from "drizzle-orm";
+import { ilike, eq, desc, asc, sql, and, gte } from "drizzle-orm";
+import geoip from "geoip-lite";
 import {
   ListBotsResponse,
   GetBotResponse,
@@ -9,6 +11,19 @@ import {
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
+
+function hashIp(ip: string): string {
+  const salt = process.env.IP_SALT || "tgbots_salt_2026";
+  return createHash("sha256").update(ip + salt).digest("hex");
+}
+
+function getRealIp(req: any): string {
+  const forwarded = req.headers["x-forwarded-for"] as string | undefined;
+  if (forwarded) {
+    return forwarded.split(",")[0].trim();
+  }
+  return req.ip || req.socket?.remoteAddress || "";
+}
 
 router.get("/bots", async (req, res) => {
   const { category, search, sortBy } = req.query as {
@@ -84,7 +99,55 @@ router.post("/bots/:id/view", async (req, res) => {
     return;
   }
 
-  await db.insert(botViewsTable).values({ botId: id });
+  const rawIp = getRealIp(req);
+  const ipHash = hashIp(rawIp);
+
+  // Deduplication: ignore repeated views from same IP within 24 hours
+  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const [existing] = await db
+    .select({ id: botViewsTable.id })
+    .from(botViewsTable)
+    .where(
+      and(
+        eq(botViewsTable.botId, id),
+        eq(botViewsTable.ipHash, ipHash),
+        gte(botViewsTable.viewedAt, oneDayAgo)
+      )
+    )
+    .limit(1);
+
+  if (existing) {
+    res.json({ status: "duplicate" });
+    return;
+  }
+
+  // Geolocation lookup
+  const geo = geoip.lookup(rawIp);
+  const countryNames: Record<string, string> = {
+    RU: "Россия", US: "США", DE: "Германия", GB: "Великобритания",
+    FR: "Франция", UA: "Украина", KZ: "Казахстан", BY: "Беларусь",
+    PL: "Польша", TR: "Турция", UZ: "Узбекистан", AZ: "Азербайджан",
+    AM: "Армения", GE: "Грузия", MD: "Молдова", KG: "Кыргызстан",
+    TJ: "Таджикистан", TM: "Туркменистан", LT: "Литва", LV: "Латвия",
+    EE: "Эстония", CN: "Китай", IN: "Индия", BR: "Бразилия",
+    JP: "Япония", KR: "Южная Корея", IT: "Италия", ES: "Испания",
+    NL: "Нидерланды", SE: "Швеция", NO: "Норвегия", FI: "Финляндия",
+    CZ: "Чехия", AT: "Австрия", CH: "Швейцария", CA: "Канада",
+    AU: "Австралия", IL: "Израиль", AE: "ОАЭ", SA: "Саудовская Аравия",
+  };
+
+  const countryCode = geo?.country || "XX";
+  const country = countryNames[countryCode] || geo?.country || "Другие";
+  const city = geo?.city || "";
+
+  await db.insert(botViewsTable).values({
+    botId: id,
+    ipHash,
+    country,
+    countryCode,
+    city,
+  });
+
   res.json({ status: "ok" });
 });
 

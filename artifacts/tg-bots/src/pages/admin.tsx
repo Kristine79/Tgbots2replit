@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Pencil, Trash2, LogOut, Bot, Search,
   ShieldCheck, Star, Users, CheckCircle, Sparkles,
-  BarChart3, Eye, TrendingUp, Calendar,
+  BarChart3, Eye, TrendingUp, Calendar, Globe,
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
@@ -79,9 +79,27 @@ export default function AdminDashboard() {
   if (!isAdminLoggedIn()) return null;
 
   const totalViews = stats?.reduce((s, b) => s + b.totalViews, 0) ?? 0;
+  const uniqueVisitors = stats?.reduce((s, b) => s + (b.uniqueVisitors ?? 0), 0) ?? 0;
   const views7 = stats?.reduce((s, b) => s + b.last7Days, 0) ?? 0;
   const views30 = stats?.reduce((s, b) => s + b.last30Days, 0) ?? 0;
   const topBots = stats?.filter((b) => b.totalViews > 0).slice(0, 10) ?? [];
+
+  // Aggregate geo across all bots
+  const geoMap: Record<string, { country: string; countryCode: string; views: number }> = {};
+  stats?.forEach((stat) => {
+    stat.geoBreakdown?.forEach((geo) => {
+      const key = geo.countryCode || "XX";
+      if (!geoMap[key]) geoMap[key] = { country: geo.country, countryCode: key, views: 0 };
+      geoMap[key].views += geo.views;
+    });
+  });
+  const topGeo = Object.values(geoMap).sort((a, b) => b.views - a.views).slice(0, 10);
+  const totalGeoViews = topGeo.reduce((s, g) => s + g.views, 0) || 1;
+
+  function flagEmoji(code: string) {
+    if (!code || code === "XX") return "🌍";
+    return code.toUpperCase().split("").map((c) => String.fromCodePoint(127397 + c.charCodeAt(0))).join("");
+  }
 
   return (
     <div className="min-h-screen" style={{ background: "radial-gradient(circle at 50% 0%, #122040 0%, #080c17 60%)" }}>
@@ -270,11 +288,12 @@ export default function AdminDashboard() {
           {activeTab === "stats" && (
             <motion.div key="stats" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-6">
               {/* Visit summary cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {[
                   { label: "Всего просмотров", value: totalViews, icon: Eye, color: "text-primary", bg: "bg-primary/10 border-primary/20" },
-                  { label: "За последние 7 дней", value: views7, icon: Calendar, color: "text-green-400", bg: "bg-green-500/10 border-green-500/20" },
-                  { label: "За последние 30 дней", value: views30, icon: TrendingUp, color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20" },
+                  { label: "Уник. посетителей", value: uniqueVisitors, icon: Users, color: "text-violet-400", bg: "bg-violet-500/10 border-violet-500/20" },
+                  { label: "За 7 дней", value: views7, icon: Calendar, color: "text-green-400", bg: "bg-green-500/10 border-green-500/20" },
+                  { label: "За 30 дней", value: views30, icon: TrendingUp, color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20" },
                 ].map((card) => (
                   <div key={card.label} className={`glass-panel rounded-2xl p-5 border ${card.bg}`}>
                     <card.icon className={`w-6 h-6 ${card.color} mb-3`} />
@@ -337,6 +356,45 @@ export default function AdminDashboard() {
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
+                )}
+              </div>
+
+              {/* Geo breakdown */}
+              <div className="glass-panel rounded-2xl border border-white/10 p-6">
+                <h3 className="font-semibold text-white mb-5 flex items-center gap-2">
+                  <Globe className="w-5 h-5 text-primary" />
+                  География посетителей
+                </h3>
+                {isLoadingStats ? (
+                  <div className="h-32 flex items-center justify-center text-muted-foreground">Загрузка...</div>
+                ) : topGeo.length === 0 ? (
+                  <div className="h-32 flex flex-col items-center justify-center text-muted-foreground gap-2">
+                    <Globe className="w-8 h-8 opacity-30" />
+                    <p className="text-sm">Данные о географии появятся после первых посещений</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {topGeo.map((geo) => {
+                      const pct = Math.round((geo.views / totalGeoViews) * 100);
+                      return (
+                        <div key={geo.countryCode} className="flex items-center gap-3">
+                          <span className="text-2xl w-8 shrink-0 text-center">{flagEmoji(geo.countryCode)}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-sm font-medium text-white truncate">{geo.country}</span>
+                              <span className="text-xs text-muted-foreground ml-2 shrink-0">{geo.views} · {pct}%</span>
+                            </div>
+                            <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                              <div
+                                className="h-1.5 rounded-full bg-gradient-to-r from-primary to-blue-400 transition-all"
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
               </div>
 

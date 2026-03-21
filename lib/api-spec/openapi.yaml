@@ -379,6 +379,8 @@ components:
           type: string
         totalViews:
           type: integer
+        uniqueVisitors:
+          type: integer
         last7Days:
           type: integer
         last30Days:
@@ -395,14 +397,31 @@ components:
             required:
               - date
               - views
+        geoBreakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              country:
+                type: string
+              countryCode:
+                type: string
+              views:
+                type: integer
+            required:
+              - country
+              - countryCode
+              - views
       required:
         - botId
         - botName
         - botEmoji
         - totalViews
+        - uniqueVisitors
         - last7Days
         - last30Days
         - dailyViews
+        - geoBreakdown
     Category:
       type: object
       properties:

@@ -177,11 +177,19 @@ export const GetBotStatsResponseItem = zod.object({
   botName: zod.string(),
   botEmoji: zod.string(),
   totalViews: zod.number(),
+  uniqueVisitors: zod.number(),
   last7Days: zod.number(),
   last30Days: zod.number(),
   dailyViews: zod.array(
     zod.object({
       date: zod.string(),
+      views: zod.number(),
+    }),
+  ),
+  geoBreakdown: zod.array(
+    zod.object({
+      country: zod.string(),
+      countryCode: zod.string(),
       views: zod.number(),
     }),
   ),
