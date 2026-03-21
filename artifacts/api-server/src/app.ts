@@ -1,34 +1,23 @@
-import express, { type Express } from "express";
+import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
-import pinoHttpModule from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
 
-// Handle ESM/CJS interop for pino-http
-const pinoHttp: typeof pinoHttpModule =
-  (pinoHttpModule as any).default ?? pinoHttpModule;
-
 const app: Express = express();
 
-app.use(
-  pinoHttp({
-    logger,
-    serializers: {
-      req(req: any) {
-        return {
-          id: req.id,
-          method: req.method,
-          url: req.url?.split("?")[0],
-        };
-      },
-      res(res: any) {
-        return {
-          statusCode: res.statusCode,
-        };
-      },
-    },
-  }),
-);
+// Simple request logger middleware (avoids pino-http ESM/CJS interop issues)
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const start = Date.now();
+  res.on("finish", () => {
+    logger.info({
+      method: req.method,
+      url: req.url?.split("?")[0],
+      status: res.statusCode,
+      ms: Date.now() - start,
+    });
+  });
+  next();
+});
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
