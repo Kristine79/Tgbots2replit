@@ -4,6 +4,16 @@
 
 pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
 
+## Artifacts
+
+### `artifacts/tg-bots` — Лучшие Telegram Боты (PWA)
+React + Vite web app at `/`. Directory of the best Telegram bots with glassmorphism Telegram 2026 design.
+- Search + filter by category + sort (popular/rating/name)
+- Bot cards with glassmorphism effects, rating, monthly users, tags
+- Bot detail page (`/bot/:id`)
+- PWA manifest for installability
+- Uses React Query hooks from `@workspace/api-client-react`
+
 ## Stack
 
 - **Monorepo tool**: pnpm workspaces
