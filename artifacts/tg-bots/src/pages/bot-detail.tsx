@@ -12,8 +12,8 @@ export default function BotDetail() {
   const { data: bot, isLoading, error } = useGetBot(botId);
 
   const formatNumber = (num: number) => {
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + ' млн';
+    if (num >= 1000) return (num / 1000).toFixed(1) + ' тыс';
     return num.toString();
   };
 
@@ -37,10 +37,10 @@ export default function BotDetail() {
       <Layout>
         <div className="py-20 text-center flex flex-col items-center">
           <ShieldAlert className="w-16 h-16 text-destructive mb-4" />
-          <h2 className="text-2xl font-display font-bold text-white mb-2">Bot not found</h2>
-          <p className="text-muted-foreground mb-6">The bot you are looking for does not exist or has been removed.</p>
+          <h2 className="text-2xl font-display font-bold text-white mb-2">Бот не найден</h2>
+          <p className="text-muted-foreground mb-6">Бот не существует или был удалён.</p>
           <Link href="/" className="px-6 py-3 rounded-xl bg-primary text-white font-medium hover:bg-primary/90 transition-colors shadow-lg shadow-primary/25">
-            Return Home
+            На главную
           </Link>
         </div>
       </Layout>
@@ -57,7 +57,7 @@ export default function BotDetail() {
         >
           <Link href="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-white transition-colors group">
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            <span>Back to directory</span>
+            <span>Назад к каталогу</span>
           </Link>
         </motion.div>
 
@@ -67,7 +67,6 @@ export default function BotDetail() {
           animate={{ opacity: 1, y: 0 }}
           className="relative"
         >
-          {/* Big Glow Behind Hero */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 bg-primary/20 blur-[100px] rounded-full pointer-events-none z-0" />
           
           <GlassCard className="p-6 sm:p-10 mb-8 relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-8 text-center sm:text-left">
@@ -88,7 +87,7 @@ export default function BotDetail() {
                 {bot.isPremium && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 text-amber-400 text-sm font-semibold mx-auto sm:mx-0 w-fit">
                     <Sparkles className="w-4 h-4" />
-                    Premium
+                    Премиум
                   </span>
                 )}
               </div>
@@ -102,7 +101,7 @@ export default function BotDetail() {
                   </div>
                   <div className="flex flex-col text-left">
                     <span className="text-white text-base leading-none mb-1">{bot.rating.toFixed(1)}</span>
-                    <span className="text-muted-foreground text-xs">{formatNumber(bot.reviewCount)} reviews</span>
+                    <span className="text-muted-foreground text-xs">{formatNumber(bot.reviewCount)} отзывов</span>
                   </div>
                 </div>
                 
@@ -114,7 +113,7 @@ export default function BotDetail() {
                   </div>
                   <div className="flex flex-col text-left">
                     <span className="text-white text-base leading-none mb-1">{formatNumber(bot.monthlyUsers)}</span>
-                    <span className="text-muted-foreground text-xs">monthly users</span>
+                    <span className="text-muted-foreground text-xs">пользователей/мес.</span>
                   </div>
                 </div>
 
@@ -126,7 +125,7 @@ export default function BotDetail() {
                   </div>
                   <div className="flex flex-col text-left">
                     <span className="text-white text-base leading-none mb-1 capitalize">{bot.category}</span>
-                    <span className="text-muted-foreground text-xs">category</span>
+                    <span className="text-muted-foreground text-xs">категория</span>
                   </div>
                 </div>
               </div>
@@ -137,12 +136,12 @@ export default function BotDetail() {
                 onClick={() => window.open(bot.telegramUrl, '_blank')}
                 className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-primary text-white font-bold hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(34,158,217,0.4)] hover:shadow-[0_0_30px_rgba(34,158,217,0.6)] flex items-center justify-center gap-2"
               >
-                Open in Telegram
+                Открыть в Telegram
                 <ExternalLink className="w-5 h-5" />
               </button>
               <button className="w-full sm:w-auto px-8 py-4 rounded-2xl glass-panel glass-panel-hover text-white font-medium flex items-center justify-center gap-2">
                 <Share2 className="w-5 h-5 text-muted-foreground" />
-                Share Bot
+                Поделиться
               </button>
             </div>
           </GlassCard>
@@ -159,7 +158,7 @@ export default function BotDetail() {
             <GlassCard className="p-6 sm:p-8">
               <h2 className="text-xl font-display font-semibold text-white mb-4 flex items-center gap-2">
                 <Info className="w-5 h-5 text-primary" />
-                About this Bot
+                О боте
               </h2>
               <div className="prose prose-invert max-w-none">
                 <p className="text-muted-foreground text-base sm:text-lg leading-relaxed whitespace-pre-wrap">
@@ -171,31 +170,30 @@ export default function BotDetail() {
             <GlassCard className="p-6 sm:p-8">
               <h2 className="text-xl font-display font-semibold text-white mb-6 flex items-center gap-2">
                 <MessageSquare className="w-5 h-5 text-primary" />
-                Recent Reviews
+                Последние отзывы
               </h2>
               <div className="space-y-6">
-                {/* Mocked reviews for UI completeness since API doesn't provide them */}
                 {[1, 2].map((i) => (
                   <div key={i} className="pb-6 border-b border-white/10 last:border-0 last:pb-0">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500" />
                       <div>
-                        <p className="text-sm font-medium text-white">Alex User {i}</p>
+                        <p className="text-sm font-medium text-white">Пользователь {i}</p>
                         <div className="flex items-center text-amber-400">
                           {Array(5).fill(0).map((_, j) => (
                             <Star key={j} className="w-3 h-3 fill-current" />
                           ))}
                         </div>
                       </div>
-                      <span className="ml-auto text-xs text-muted-foreground">2 days ago</span>
+                      <span className="ml-auto text-xs text-muted-foreground">2 дня назад</span>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      Absolutely brilliant bot. Does exactly what it promises and is incredibly fast. The premium features are definitely worth it if you use this daily!
+                      Отличный бот. Делает именно то, что обещает, и работает очень быстро. Платные функции точно стоят своих денег!
                     </p>
                   </div>
                 ))}
                 <button className="w-full py-3 rounded-xl border border-white/10 text-sm font-medium text-white hover:bg-white/5 transition-colors">
-                  Show All Reviews
+                  Показать все отзывы
                 </button>
               </div>
             </GlassCard>
@@ -209,7 +207,7 @@ export default function BotDetail() {
             className="space-y-8"
           >
             <GlassCard className="p-6">
-              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4">Tags</h3>
+              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4">Теги</h3>
               <div className="flex flex-wrap gap-2">
                 {bot.tags.map(tag => (
                   <span key={tag} className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/5 text-sm font-medium text-white/90 hover:bg-white/10 transition-colors cursor-pointer">
@@ -222,16 +220,16 @@ export default function BotDetail() {
             <GlassCard className="p-6 bg-gradient-to-b from-primary/10 to-transparent border-t-primary/30">
               <h3 className="font-display font-semibold text-white mb-2 flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-primary" />
-                Pro Tip
+                Совет
               </h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Did you know you can add this bot directly to your groups to unlock multiplayer features?
+                Добавьте бота в свою группу, чтобы открыть функции для совместного использования!
               </p>
               <button 
                 onClick={() => window.open(`${bot.telegramUrl}?startgroup=true`, '_blank')}
                 className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-sm font-medium text-white transition-colors"
               >
-                Add to Group
+                Добавить в группу
               </button>
             </GlassCard>
           </motion.div>

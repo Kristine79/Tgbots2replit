@@ -28,27 +28,27 @@ export function Layout({ children }: { children: ReactNode }) {
               <Bot className="w-6 h-6 text-white" />
             </div>
             <span className="font-display font-bold text-xl tracking-tight text-white group-hover:text-glow transition-all">
-              TG Bots
+              TG Боты
             </span>
           </Link>
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-6">
             <Link href="/" className={`text-sm font-medium transition-colors hover:text-primary ${location === '/' ? 'text-primary text-glow' : 'text-muted-foreground'}`}>
-              Discover
+              Каталог
             </Link>
             <Link href="#" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary cursor-not-allowed opacity-70">
-              Categories
+              Категории
             </Link>
             <Link href="#" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary cursor-not-allowed opacity-70">
-              Submit Bot
+              Добавить бота
             </Link>
           </nav>
 
           <div className="hidden md:flex items-center gap-4">
             <button className="h-10 px-4 rounded-xl glass-panel glass-panel-hover flex items-center gap-2 text-sm font-medium text-white">
               <Sparkles className="w-4 h-4 text-primary" />
-              <span>Premium</span>
+              <span>Премиум</span>
             </button>
           </div>
 
@@ -72,18 +72,18 @@ export function Layout({ children }: { children: ReactNode }) {
             className="fixed inset-x-0 top-16 z-40 glass-panel border-x-0 border-t-0 p-4 md:hidden flex flex-col gap-4"
           >
             <Link href="/" className="px-4 py-3 rounded-xl hover:bg-white/5 transition-colors" onClick={() => setMobileMenuOpen(false)}>
-              Discover
+              Каталог
             </Link>
             <div className="px-4 py-3 rounded-xl opacity-50 cursor-not-allowed">
-              Categories (Coming Soon)
+              Категории (скоро)
             </div>
             <div className="px-4 py-3 rounded-xl opacity-50 cursor-not-allowed">
-              Submit Bot (Coming Soon)
+              Добавить бота (скоро)
             </div>
             <div className="h-px w-full bg-white/10 my-2" />
             <button className="h-12 w-full rounded-xl bg-gradient-to-r from-primary to-primary/80 flex items-center justify-center gap-2 text-sm font-semibold text-white">
               <Sparkles className="w-4 h-4" />
-              Get Premium
+              Получить Премиум
             </button>
           </motion.div>
         )}
@@ -97,10 +97,10 @@ export function Layout({ children }: { children: ReactNode }) {
       {/* Footer */}
       <footer className="py-8 border-t border-white/10 mt-auto glass-panel border-x-0 border-b-0">
         <div className="max-w-7xl mx-auto px-4 text-center text-muted-foreground text-sm flex flex-col md:flex-row justify-between items-center gap-4">
-          <p>© 2026 TG Bots Directory. All rights reserved.</p>
+          <p>© 2026 Лучшие Telegram Боты. Все права защищены.</p>
           <div className="flex items-center gap-4">
-            <a href="#" className="hover:text-primary transition-colors">Privacy</a>
-            <a href="#" className="hover:text-primary transition-colors">Terms</a>
+            <a href="#" className="hover:text-primary transition-colors">Конфиденциальность</a>
+            <a href="#" className="hover:text-primary transition-colors">Условия</a>
             <a href="#" className="hover:text-primary transition-colors">API</a>
           </div>
         </div>

@@ -14,7 +14,6 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
   const [sortBy, setSortBy] = useState<ListBotsSortBy>("popular");
 
-  // Using the generated hooks from api-client-react
   const { data: categories, isLoading: isLoadingCategories } = useListCategories();
   const { data: bots, isLoading: isLoadingBots } = useListBots({
     search: debouncedSearch || undefined,
@@ -23,9 +22,9 @@ export default function Home() {
   });
 
   const sortOptions = [
-    { value: "popular", label: "Most Popular", icon: TrendingUp },
-    { value: "rating", label: "Top Rated", icon: Star },
-    { value: "name", label: "A-Z", icon: Filter },
+    { value: "popular", label: "Популярные", icon: TrendingUp },
+    { value: "rating", label: "По рейтингу", icon: Star },
+    { value: "name", label: "А-Я", icon: Filter },
   ];
 
   return (
@@ -38,11 +37,11 @@ export default function Home() {
       >
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6">
           <Sparkles className="w-4 h-4" />
-          <span>Discover the best of Telegram 2026</span>
+          <span>Лучшее из Telegram 2026</span>
         </div>
         <h1 className="text-4xl md:text-6xl font-display font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 mb-6 leading-tight">
-          Supercharge Your <br className="hidden md:block" />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-400 text-glow">Telegram Experience</span>
+          Прокачай свой <br className="hidden md:block" />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-400 text-glow">Telegram до предела</span>
         </h1>
         
         <div className="w-full max-w-2xl relative group">
@@ -51,7 +50,7 @@ export default function Home() {
             <Search className="w-6 h-6 text-muted-foreground ml-3" />
             <input 
               type="text"
-              placeholder="Search bots, categories, or keywords..."
+              placeholder="Поиск ботов, категорий или ключевых слов..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="flex-1 bg-transparent border-none text-white px-4 py-3 focus:outline-none focus:ring-0 placeholder:text-muted-foreground/70"
@@ -61,7 +60,7 @@ export default function Home() {
                 onClick={() => setSearchTerm("")}
                 className="p-2 mr-2 rounded-xl hover:bg-white/10 text-muted-foreground transition-colors"
               >
-                Clear
+                Очистить
               </button>
             )}
           </div>
@@ -79,7 +78,7 @@ export default function Home() {
                 : 'glass-panel text-muted-foreground hover:text-white'
             }`}
           >
-            All Bots
+            Все боты
           </button>
           
           {isLoadingCategories ? (
@@ -113,7 +112,7 @@ export default function Home() {
       {/* Controls Bar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h2 className="text-xl font-display font-semibold text-white">
-          {searchTerm ? 'Search Results' : selectedCategory ? 'Category Results' : 'Trending Bots'}
+          {searchTerm ? 'Результаты поиска' : selectedCategory ? 'Боты категории' : 'Популярные боты'}
         </h2>
         
         <div className="flex items-center gap-2 bg-white/5 p-1 rounded-2xl border border-white/10 self-stretch sm:self-auto overflow-x-auto hide-scrollbar">
@@ -194,15 +193,15 @@ export default function Home() {
             <div className="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center mb-4 border border-white/10 shadow-[0_0_30px_rgba(255,255,255,0.05)]">
               <Search className="w-10 h-10 text-muted-foreground" />
             </div>
-            <h3 className="text-xl font-display font-semibold text-white mb-2">No bots found</h3>
+            <h3 className="text-xl font-display font-semibold text-white mb-2">Боты не найдены</h3>
             <p className="text-muted-foreground max-w-md">
-              We couldn't find any bots matching your search criteria. Try using different keywords or exploring categories.
+              Не удалось найти боты по вашему запросу. Попробуйте другие ключевые слова или выберите другую категорию.
             </p>
             <button 
               onClick={() => { setSearchTerm(""); setSelectedCategory(undefined); }}
               className="mt-6 px-6 py-3 rounded-xl bg-primary/10 text-primary font-medium hover:bg-primary/20 transition-colors border border-primary/20"
             >
-              Clear all filters
+              Сбросить фильтры
             </button>
           </motion.div>
         )}

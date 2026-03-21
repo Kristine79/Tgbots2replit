@@ -110,8 +110,8 @@ export default function AdminDashboard() {
           {[
             { label: "Всего ботов", value: bots?.length ?? "—", icon: Bot, color: "text-primary" },
             { label: "Категорий", value: categories?.length ?? "—", icon: ShieldCheck, color: "text-purple-400" },
-            { label: "Verified", value: bots?.filter((b) => b.isVerified).length ?? "—", icon: CheckCircle, color: "text-green-400" },
-            { label: "Premium", value: bots?.filter((b) => b.isPremium).length ?? "—", icon: Sparkles, color: "text-amber-400" },
+            { label: "Проверенных", value: bots?.filter((b) => b.isVerified).length ?? "—", icon: CheckCircle, color: "text-green-400" },
+            { label: "Премиум", value: bots?.filter((b) => b.isPremium).length ?? "—", icon: Sparkles, color: "text-amber-400" },
           ].map((stat) => (
             <div key={stat.label} className="glass-panel rounded-2xl p-4 border border-white/10">
               <stat.icon className={`w-5 h-5 ${stat.color} mb-2`} />
@@ -196,10 +196,10 @@ export default function AdminDashboard() {
                       <td className="px-4 py-3 hidden md:table-cell">
                         <div className="flex items-center gap-2">
                           {bot.isVerified && (
-                            <span className="px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 text-xs border border-green-500/20">Verified</span>
+                            <span className="px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 text-xs border border-green-500/20">Проверен</span>
                           )}
                           {bot.isPremium && (
-                            <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-xs border border-amber-500/20">Premium</span>
+                            <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-xs border border-amber-500/20">Премиум</span>
                           )}
                         </div>
                       </td>

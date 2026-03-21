@@ -265,7 +265,7 @@ export function BotForm({ bot, categories, token, onClose, onSuccess }: BotFormP
               >
                 {form.isVerified && <span className="text-white text-xs font-bold">✓</span>}
               </div>
-              <span className="text-sm text-white">Verified</span>
+              <span className="text-sm text-white">Проверен (Verified)</span>
             </label>
             <label className="flex items-center gap-2.5 cursor-pointer group">
               <div
@@ -274,7 +274,7 @@ export function BotForm({ bot, categories, token, onClose, onSuccess }: BotFormP
               >
                 {form.isPremium && <span className="text-white text-xs font-bold">✓</span>}
               </div>
-              <span className="text-sm text-white">Premium</span>
+              <span className="text-sm text-white">Премиум (Premium)</span>
             </label>
           </div>
 
