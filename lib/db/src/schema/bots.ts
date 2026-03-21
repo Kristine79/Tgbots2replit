@@ -1,4 +1,4 @@
-import { pgTable, serial, text, real, integer, boolean } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, real, integer, boolean, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -30,6 +30,12 @@ export const botsTable = pgTable("bots", {
 export const insertCategorySchema = createInsertSchema(categoriesTable).omit({ id: true });
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type Category = typeof categoriesTable.$inferSelect;
+
+export const botViewsTable = pgTable("bot_views", {
+  id: serial("id").primaryKey(),
+  botId: integer("bot_id").notNull().references(() => botsTable.id, { onDelete: "cascade" }),
+  viewedAt: timestamp("viewed_at").notNull().defaultNow(),
+});
 
 export const insertBotSchema = createInsertSchema(botsTable).omit({ id: true });
 export type InsertBot = z.infer<typeof insertBotSchema>;

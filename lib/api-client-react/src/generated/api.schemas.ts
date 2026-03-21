@@ -41,6 +41,21 @@ export interface BotInput {
   telegramUrl: string;
 }
 
+export type BotStatDailyViewsItem = {
+  date: string;
+  views: number;
+};
+
+export interface BotStat {
+  botId: number;
+  botName: string;
+  botEmoji: string;
+  totalViews: number;
+  last7Days: number;
+  last30Days: number;
+  dailyViews: BotStatDailyViewsItem[];
+}
+
 export interface Category {
   id: number;
   name: string;

@@ -1,7 +1,8 @@
 import { useRoute, Link } from "wouter";
+import { useEffect } from "react";
 import { ArrowLeft, ExternalLink, Star, CheckCircle, ShieldAlert, Users, Sparkles, MessageSquare, Share2, Info, LayoutGrid } from "lucide-react";
 import { motion } from "framer-motion";
-import { useGetBot } from "@workspace/api-client-react";
+import { useGetBot, recordBotView } from "@workspace/api-client-react";
 import { Layout } from "@/components/layout";
 import { GlassCard } from "@/components/ui/glass-card";
 
@@ -10,6 +11,12 @@ export default function BotDetail() {
   const botId = params?.id ? parseInt(params.id) : 0;
   
   const { data: bot, isLoading, error } = useGetBot(botId);
+
+  useEffect(() => {
+    if (botId) {
+      recordBotView(botId).catch(() => {});
+    }
+  }, [botId]);
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + ' млн';

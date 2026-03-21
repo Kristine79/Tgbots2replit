@@ -66,6 +66,17 @@ export const GetBotResponse = zod.object({
 });
 
 /**
+ * @summary Record a bot page view
+ */
+export const RecordBotViewParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const RecordBotViewResponse = zod.object({
+  status: zod.string(),
+});
+
+/**
  * @summary List all categories
  */
 export const ListCategoriesResponseItem = zod.object({
@@ -157,3 +168,22 @@ export const DeleteBotResponse = zod.object({
   success: zod.boolean(),
   message: zod.string(),
 });
+
+/**
+ * @summary Get visit statistics for all bots
+ */
+export const GetBotStatsResponseItem = zod.object({
+  botId: zod.number(),
+  botName: zod.string(),
+  botEmoji: zod.string(),
+  totalViews: zod.number(),
+  last7Days: zod.number(),
+  last30Days: zod.number(),
+  dailyViews: zod.array(
+    zod.object({
+      date: zod.string(),
+      views: zod.number(),
+    }),
+  ),
+});
+export const GetBotStatsResponse = zod.array(GetBotStatsResponseItem);

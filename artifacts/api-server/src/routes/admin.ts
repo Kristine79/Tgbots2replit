@@ -1,7 +1,7 @@
 import { Router, type IRouter, type Request, type Response, type NextFunction } from "express";
 import { db } from "@workspace/db";
-import { botsTable, categoriesTable } from "@workspace/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { botsTable, categoriesTable, botViewsTable } from "@workspace/db/schema";
+import { eq, sql, gte, and } from "drizzle-orm";
 import {
   AdminLoginBody,
   AdminLoginResponse,
@@ -190,6 +190,56 @@ router.delete("/admin/bots/:id", requireAdmin, async (req, res) => {
     message: "Bot deleted successfully",
   });
   res.json(response);
+});
+
+router.get("/admin/stats", requireAdmin, async (_req, res) => {
+  const now = new Date();
+  const days7ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const days30ago = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+  const bots = await db.select().from(botsTable);
+
+  const stats = await Promise.all(
+    bots.map(async (bot) => {
+      const [totalRow] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(botViewsTable)
+        .where(eq(botViewsTable.botId, bot.id));
+
+      const [last7Row] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(botViewsTable)
+        .where(and(eq(botViewsTable.botId, bot.id), gte(botViewsTable.viewedAt, days7ago)));
+
+      const [last30Row] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(botViewsTable)
+        .where(and(eq(botViewsTable.botId, bot.id), gte(botViewsTable.viewedAt, days30ago)));
+
+      const dailyRows = await db
+        .select({
+          date: sql<string>`to_char(date_trunc('day', ${botViewsTable.viewedAt}), 'YYYY-MM-DD')`,
+          views: sql<number>`count(*)::int`,
+        })
+        .from(botViewsTable)
+        .where(and(eq(botViewsTable.botId, bot.id), gte(botViewsTable.viewedAt, days30ago)))
+        .groupBy(sql`date_trunc('day', ${botViewsTable.viewedAt})`)
+        .orderBy(sql`date_trunc('day', ${botViewsTable.viewedAt})`);
+
+      return {
+        botId: bot.id,
+        botName: bot.name,
+        botEmoji: bot.iconEmoji,
+        totalViews: totalRow?.count ?? 0,
+        last7Days: last7Row?.count ?? 0,
+        last30Days: last30Row?.count ?? 0,
+        dailyViews: dailyRows.map((r) => ({ date: r.date, views: r.views })),
+      };
+    })
+  );
+
+  const sorted = stats.sort((a, b) => b.totalViews - a.totalViews);
+  res.json(sorted);
 });
 
 export default router;

@@ -3,20 +3,27 @@ import { useLocation, Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Pencil, Trash2, LogOut, Bot, Search,
-  ShieldCheck, Star, Users, CheckCircle, Sparkles, X
+  ShieldCheck, Star, Users, CheckCircle, Sparkles,
+  BarChart3, Eye, TrendingUp, Calendar,
 } from "lucide-react";
 import {
-  useListBots, useListCategories, deleteBot,
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
+} from "recharts";
+import {
+  useListBots, useListCategories, useGetBotStats, deleteBot,
   getListBotsQueryKey, getListCategoriesQueryKey,
 } from "@workspace/api-client-react";
-import type { Bot as BotType, Category } from "@workspace/api-client-react";
+import type { Bot as BotType } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { getAdminToken, clearAdminToken, isAdminLoggedIn } from "@/lib/admin-auth";
 import { BotForm } from "@/components/admin/bot-form";
 
+type Tab = "bots" | "stats";
+
 export default function AdminDashboard() {
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState<Tab>("bots");
   const [search, setSearch] = useState("");
   const [editingBot, setEditingBot] = useState<BotType | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -32,6 +39,9 @@ export default function AdminDashboard() {
 
   const { data: bots, isLoading } = useListBots({ search: search || undefined });
   const { data: categories } = useListCategories();
+  const { data: stats, isLoading: isLoadingStats } = useGetBotStats({
+    request: { headers: { Authorization: `Bearer ${token}` } },
+  });
 
   const handleLogout = () => {
     clearAdminToken();
@@ -42,9 +52,7 @@ export default function AdminDashboard() {
     if (!token) return;
     setDeletingId(bot.id);
     try {
-      await deleteBot(bot.id, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await deleteBot(bot.id, { headers: { Authorization: `Bearer ${token}` } });
       await queryClient.invalidateQueries({ queryKey: getListBotsQueryKey() });
       await queryClient.invalidateQueries({ queryKey: getListCategoriesQueryKey() });
       setDeleteConfirm(null);
@@ -55,11 +63,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleFormClose = () => {
-    setShowForm(false);
-    setEditingBot(null);
-  };
-
+  const handleFormClose = () => { setShowForm(false); setEditingBot(null); };
   const handleFormSuccess = async () => {
     await queryClient.invalidateQueries({ queryKey: getListBotsQueryKey() });
     await queryClient.invalidateQueries({ queryKey: getListCategoriesQueryKey() });
@@ -73,6 +77,11 @@ export default function AdminDashboard() {
   };
 
   if (!isAdminLoggedIn()) return null;
+
+  const totalViews = stats?.reduce((s, b) => s + b.totalViews, 0) ?? 0;
+  const views7 = stats?.reduce((s, b) => s + b.last7Days, 0) ?? 0;
+  const views30 = stats?.reduce((s, b) => s + b.last30Days, 0) ?? 0;
+  const topBots = stats?.filter((b) => b.totalViews > 0).slice(0, 10) ?? [];
 
   return (
     <div className="min-h-screen" style={{ background: "radial-gradient(circle at 50% 0%, #122040 0%, #080c17 60%)" }}>
@@ -105,7 +114,7 @@ export default function AdminDashboard() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        {/* Stats */}
+        {/* Summary Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
             { label: "Всего ботов", value: bots?.length ?? "—", icon: Bot, color: "text-primary" },
@@ -121,119 +130,282 @@ export default function AdminDashboard() {
           ))}
         </div>
 
-        {/* Toolbar */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Поиск ботов..."
-              className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-white placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all text-sm"
-            />
-          </div>
+        {/* Tabs */}
+        <div className="flex items-center gap-1 bg-white/5 p-1 rounded-2xl border border-white/10 mb-6 w-fit">
           <button
-            onClick={() => { setEditingBot(null); setShowForm(true); }}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-semibold hover:bg-primary/90 transition-all shadow-[0_0_15px_rgba(34,158,217,0.3)] hover:shadow-[0_0_25px_rgba(34,158,217,0.5)] whitespace-nowrap"
+            onClick={() => setActiveTab("bots")}
+            className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-medium transition-all ${activeTab === "bots" ? "bg-white/10 text-white shadow-sm" : "text-muted-foreground hover:text-white"}`}
           >
-            <Plus className="w-4 h-4" />
-            Добавить бота
+            <Bot className="w-4 h-4" />
+            Боты
+          </button>
+          <button
+            onClick={() => setActiveTab("stats")}
+            className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-medium transition-all ${activeTab === "stats" ? "bg-white/10 text-white shadow-sm" : "text-muted-foreground hover:text-white"}`}
+          >
+            <BarChart3 className="w-4 h-4" />
+            Статистика
           </button>
         </div>
 
-        {/* Bots Table */}
-        <div className="glass-panel rounded-2xl border border-white/10 overflow-hidden">
-          {isLoading ? (
-            <div className="p-8 text-center text-muted-foreground">Загрузка...</div>
-          ) : bots && bots.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-white/10">
-                    <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Бот</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider hidden md:table-cell">Категория</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider hidden sm:table-cell">Рейтинг</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider hidden lg:table-cell">Пользователи</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider hidden md:table-cell">Статус</th>
-                    <th className="px-4 py-3"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bots.map((bot) => (
-                    <motion.tr
-                      key={bot.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="border-b border-white/5 hover:bg-white/[0.03] transition-colors"
-                    >
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-xl shrink-0">
-                            {bot.iconEmoji}
-                          </div>
-                          <div>
-                            <div className="font-medium text-white text-sm">{bot.name}</div>
-                            <div className="text-xs text-primary">@{bot.username}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 hidden md:table-cell">
-                        <span className="text-sm text-muted-foreground">{bot.category}</span>
-                      </td>
-                      <td className="px-4 py-3 hidden sm:table-cell">
-                        <div className="flex items-center gap-1">
-                          <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                          <span className="text-sm text-white">{bot.rating.toFixed(1)}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 hidden lg:table-cell">
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <Users className="w-3.5 h-3.5" />
-                          {formatNumber(bot.monthlyUsers)}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 hidden md:table-cell">
-                        <div className="flex items-center gap-2">
-                          {bot.isVerified && (
-                            <span className="px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 text-xs border border-green-500/20">Проверен</span>
-                          )}
-                          {bot.isPremium && (
-                            <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-xs border border-amber-500/20">Премиум</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2 justify-end">
-                          <button
-                            onClick={() => { setEditingBot(bot); setShowForm(true); }}
-                            className="p-2 rounded-lg bg-white/5 hover:bg-white/15 text-muted-foreground hover:text-white transition-all border border-white/10 hover:border-white/20"
-                            title="Редактировать"
+        <AnimatePresence mode="wait">
+          {/* ── BOTS TAB ── */}
+          {activeTab === "bots" && (
+            <motion.div key="bots" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+              <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Поиск ботов..."
+                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-white placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all text-sm"
+                  />
+                </div>
+                <button
+                  onClick={() => { setEditingBot(null); setShowForm(true); }}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-semibold hover:bg-primary/90 transition-all shadow-[0_0_15px_rgba(34,158,217,0.3)] hover:shadow-[0_0_25px_rgba(34,158,217,0.5)] whitespace-nowrap"
+                >
+                  <Plus className="w-4 h-4" />
+                  Добавить бота
+                </button>
+              </div>
+
+              <div className="glass-panel rounded-2xl border border-white/10 overflow-hidden">
+                {isLoading ? (
+                  <div className="p-8 text-center text-muted-foreground">Загрузка...</div>
+                ) : bots && bots.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-white/10">
+                          <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Бот</th>
+                          <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider hidden md:table-cell">Категория</th>
+                          <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider hidden sm:table-cell">Рейтинг</th>
+                          <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider hidden lg:table-cell">Пользователи</th>
+                          <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider hidden md:table-cell">Статус</th>
+                          <th className="px-4 py-3"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {bots.map((bot) => (
+                          <motion.tr
+                            key={bot.id}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="border-b border-white/5 hover:bg-white/[0.03] transition-colors"
                           >
-                            <Pencil className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => setDeleteConfirm(bot)}
-                            className="p-2 rounded-lg bg-white/5 hover:bg-red-500/20 text-muted-foreground hover:text-red-400 transition-all border border-white/10 hover:border-red-500/30"
-                            title="Удалить"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="p-12 text-center">
-              <Bot className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-              <p className="text-white font-medium">Боты не найдены</p>
-              <p className="text-muted-foreground text-sm mt-1">Добавьте первого бота</p>
-            </div>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-xl shrink-0">
+                                  {bot.iconEmoji}
+                                </div>
+                                <div>
+                                  <div className="font-medium text-white text-sm">{bot.name}</div>
+                                  <div className="text-xs text-primary">@{bot.username}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 hidden md:table-cell">
+                              <span className="text-sm text-muted-foreground">{bot.category}</span>
+                            </td>
+                            <td className="px-4 py-3 hidden sm:table-cell">
+                              <div className="flex items-center gap-1">
+                                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                                <span className="text-sm text-white">{bot.rating.toFixed(1)}</span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 hidden lg:table-cell">
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                <Users className="w-3.5 h-3.5" />
+                                {formatNumber(bot.monthlyUsers)}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 hidden md:table-cell">
+                              <div className="flex items-center gap-2">
+                                {bot.isVerified && (
+                                  <span className="px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 text-xs border border-green-500/20">Проверен</span>
+                                )}
+                                {bot.isPremium && (
+                                  <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-xs border border-amber-500/20">Премиум</span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2 justify-end">
+                                <button
+                                  onClick={() => { setEditingBot(bot); setShowForm(true); }}
+                                  className="p-2 rounded-lg bg-white/5 hover:bg-white/15 text-muted-foreground hover:text-white transition-all border border-white/10 hover:border-white/20"
+                                  title="Редактировать"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => setDeleteConfirm(bot)}
+                                  className="p-2 rounded-lg bg-white/5 hover:bg-red-500/20 text-muted-foreground hover:text-red-400 transition-all border border-white/10 hover:border-red-500/30"
+                                  title="Удалить"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </motion.tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="p-12 text-center">
+                    <Bot className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                    <p className="text-white font-medium">Боты не найдены</p>
+                    <p className="text-muted-foreground text-sm mt-1">Добавьте первого бота</p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
           )}
-        </div>
+
+          {/* ── STATS TAB ── */}
+          {activeTab === "stats" && (
+            <motion.div key="stats" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-6">
+              {/* Visit summary cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  { label: "Всего просмотров", value: totalViews, icon: Eye, color: "text-primary", bg: "bg-primary/10 border-primary/20" },
+                  { label: "За последние 7 дней", value: views7, icon: Calendar, color: "text-green-400", bg: "bg-green-500/10 border-green-500/20" },
+                  { label: "За последние 30 дней", value: views30, icon: TrendingUp, color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20" },
+                ].map((card) => (
+                  <div key={card.label} className={`glass-panel rounded-2xl p-5 border ${card.bg}`}>
+                    <card.icon className={`w-6 h-6 ${card.color} mb-3`} />
+                    <div className="text-3xl font-bold text-white mb-1">{isLoadingStats ? "—" : formatNumber(card.value)}</div>
+                    <div className="text-sm text-muted-foreground">{card.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Bar chart — top bots */}
+              <div className="glass-panel rounded-2xl border border-white/10 p-6">
+                <h3 className="font-semibold text-white mb-6 flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-primary" />
+                  Топ ботов по просмотрам (за всё время)
+                </h3>
+                {isLoadingStats ? (
+                  <div className="h-64 flex items-center justify-center text-muted-foreground">Загрузка...</div>
+                ) : topBots.length === 0 ? (
+                  <div className="h-64 flex flex-col items-center justify-center text-muted-foreground gap-3">
+                    <Eye className="w-10 h-10 opacity-30" />
+                    <p className="text-sm">Данные о просмотрах появятся после первых посещений страниц ботов</p>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={280}>
+                    <BarChart data={topBots} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                      <XAxis
+                        dataKey="botEmoji"
+                        tick={{ fill: "#94a3b8", fontSize: 18 }}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <YAxis
+                        tick={{ fill: "#64748b", fontSize: 12 }}
+                        tickLine={false}
+                        axisLine={false}
+                        allowDecimals={false}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          background: "rgba(15,25,41,0.95)",
+                          border: "1px solid rgba(255,255,255,0.1)",
+                          borderRadius: 12,
+                          color: "#fff",
+                          fontSize: 13,
+                        }}
+                        cursor={{ fill: "rgba(255,255,255,0.04)" }}
+                        formatter={(value: number, _: string, props: any) => [
+                          `${value} просм.`,
+                          props.payload.botName,
+                        ]}
+                        labelFormatter={() => ""}
+                      />
+                      <Bar dataKey="totalViews" radius={[6, 6, 0, 0]}>
+                        {topBots.map((_, i) => (
+                          <Cell
+                            key={i}
+                            fill={i === 0 ? "#229ED9" : i === 1 ? "#3b82f6" : i === 2 ? "#6366f1" : "rgba(255,255,255,0.15)"}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+
+              {/* Stats table */}
+              <div className="glass-panel rounded-2xl border border-white/10 overflow-hidden">
+                <div className="px-6 py-4 border-b border-white/10">
+                  <h3 className="font-semibold text-white flex items-center gap-2">
+                    <Eye className="w-5 h-5 text-primary" />
+                    Просмотры по ботам
+                  </h3>
+                </div>
+                {isLoadingStats ? (
+                  <div className="p-8 text-center text-muted-foreground">Загрузка...</div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-white/10">
+                          <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Бот</th>
+                          <th className="text-right px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">За 7 дн.</th>
+                          <th className="text-right px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">За 30 дн.</th>
+                          <th className="text-right px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Всего</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(stats ?? []).map((stat, i) => {
+                          const maxViews = Math.max(...(stats ?? []).map((s) => s.totalViews), 1);
+                          const pct = Math.round((stat.totalViews / maxViews) * 100);
+                          return (
+                            <tr key={stat.botId} className="border-b border-white/5 hover:bg-white/[0.03] transition-colors">
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-3">
+                                  <span className="text-xs text-muted-foreground w-5 text-right shrink-0">{i + 1}</span>
+                                  <span className="text-xl">{stat.botEmoji}</span>
+                                  <div>
+                                    <div className="text-sm font-medium text-white">{stat.botName}</div>
+                                    <div className="mt-1 h-1 rounded-full bg-white/5 w-32">
+                                      <div
+                                        className="h-1 rounded-full bg-primary transition-all"
+                                        style={{ width: `${pct}%` }}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <span className={`text-sm font-medium ${stat.last7Days > 0 ? "text-green-400" : "text-muted-foreground"}`}>
+                                  {stat.last7Days > 0 ? `+${stat.last7Days}` : "—"}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <span className={`text-sm font-medium ${stat.last30Days > 0 ? "text-amber-400" : "text-muted-foreground"}`}>
+                                  {stat.last30Days > 0 ? `+${stat.last30Days}` : "—"}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <span className="text-sm font-bold text-white">{stat.totalViews > 0 ? stat.totalViews : "—"}</span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
       {/* Bot Form Modal */}

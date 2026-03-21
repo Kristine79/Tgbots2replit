@@ -21,6 +21,7 @@ import type {
   AdminLoginResponse,
   Bot,
   BotInput,
+  BotStat,
   Category,
   DeleteResponse,
   Error,
@@ -280,6 +281,90 @@ export function useGetBot<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Record a bot page view
+ */
+export const getRecordBotViewUrl = (id: number) => {
+  return `/api/bots/${id}/view`;
+};
+
+export const recordBotView = async (
+  id: number,
+  options?: RequestInit,
+): Promise<HealthStatus> => {
+  return customFetch<HealthStatus>(getRecordBotViewUrl(id), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getRecordBotViewMutationOptions = <
+  TError = ErrorType<Error>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof recordBotView>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof recordBotView>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["recordBotView"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof recordBotView>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return recordBotView(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RecordBotViewMutationResult = NonNullable<
+  Awaited<ReturnType<typeof recordBotView>>
+>;
+
+export type RecordBotViewMutationError = ErrorType<Error>;
+
+/**
+ * @summary Record a bot page view
+ */
+export const useRecordBotView = <
+  TError = ErrorType<Error>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof recordBotView>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof recordBotView>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getRecordBotViewMutationOptions(options));
+};
 
 /**
  * @summary List all categories
@@ -698,3 +783,78 @@ export const useDeleteBot = <
 > => {
   return useMutation(getDeleteBotMutationOptions(options));
 };
+
+/**
+ * @summary Get visit statistics for all bots
+ */
+export const getGetBotStatsUrl = () => {
+  return `/api/admin/stats`;
+};
+
+export const getBotStats = async (
+  options?: RequestInit,
+): Promise<BotStat[]> => {
+  return customFetch<BotStat[]>(getGetBotStatsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetBotStatsQueryKey = () => {
+  return [`/api/admin/stats`] as const;
+};
+
+export const getGetBotStatsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getBotStats>>,
+  TError = ErrorType<Error>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getBotStats>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetBotStatsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getBotStats>>> = ({
+    signal,
+  }) => getBotStats({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getBotStats>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetBotStatsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getBotStats>>
+>;
+export type GetBotStatsQueryError = ErrorType<Error>;
+
+/**
+ * @summary Get visit statistics for all bots
+ */
+
+export function useGetBotStats<
+  TData = Awaited<ReturnType<typeof getBotStats>>,
+  TError = ErrorType<Error>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getBotStats>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetBotStatsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}

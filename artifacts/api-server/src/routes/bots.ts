@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
-import { botsTable, categoriesTable } from "@workspace/db/schema";
+import { botsTable, categoriesTable, botViewsTable } from "@workspace/db/schema";
 import { ilike, eq, desc, asc, sql } from "drizzle-orm";
 import {
   ListBotsResponse,
@@ -69,6 +69,23 @@ router.get("/bots/:id", async (req, res) => {
 
   const parsed = GetBotResponse.parse(bot);
   res.json(parsed);
+});
+
+router.post("/bots/:id/view", async (req, res) => {
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) {
+    res.status(400).json({ message: "Invalid bot id" });
+    return;
+  }
+
+  const [bot] = await db.select().from(botsTable).where(eq(botsTable.id, id)).limit(1);
+  if (!bot) {
+    res.status(404).json({ message: "Bot not found" });
+    return;
+  }
+
+  await db.insert(botViewsTable).values({ botId: id });
+  res.json({ status: "ok" });
 });
 
 router.get("/categories", async (_req, res) => {

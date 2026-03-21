@@ -10,6 +10,8 @@ export * from "./adminLoginRequest";
 export * from "./adminLoginResponse";
 export * from "./bot";
 export * from "./botInput";
+export * from "./botStat";
+export * from "./botStatDailyViewsItem";
 export * from "./category";
 export * from "./deleteResponse";
 export * from "./error";
