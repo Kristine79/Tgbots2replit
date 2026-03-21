@@ -52,7 +52,7 @@ export function BotForm({ bot, categories, token, onClose, onSuccess }: BotFormP
     } else {
       setForm((prev) => ({
         ...DEFAULT_FORM,
-        categoryId: prev.categoryId || categories[0]?.id ?? 0,
+        categoryId: prev.categoryId || (categories[0]?.id ?? 0),
       }));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
