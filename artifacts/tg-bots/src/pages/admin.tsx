@@ -165,7 +165,7 @@ export default function AdminDashboard() {
                       key={bot.id}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="border-b border-white/5 hover:bg-white/[0.03] transition-colors group"
+                      className="border-b border-white/5 hover:bg-white/[0.03] transition-colors"
                     >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
@@ -207,14 +207,14 @@ export default function AdminDashboard() {
                         <div className="flex items-center gap-2 justify-end">
                           <button
                             onClick={() => { setEditingBot(bot); setShowForm(true); }}
-                            className="p-2 rounded-lg hover:bg-white/10 text-muted-foreground hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                            className="p-2 rounded-lg bg-white/5 hover:bg-white/15 text-muted-foreground hover:text-white transition-all border border-white/10 hover:border-white/20"
                             title="Редактировать"
                           >
                             <Pencil className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => setDeleteConfirm(bot)}
-                            className="p-2 rounded-lg hover:bg-red-500/20 text-muted-foreground hover:text-red-400 transition-all opacity-0 group-hover:opacity-100"
+                            className="p-2 rounded-lg bg-white/5 hover:bg-red-500/20 text-muted-foreground hover:text-red-400 transition-all border border-white/10 hover:border-red-500/30"
                             title="Удалить"
                           >
                             <Trash2 className="w-4 h-4" />
