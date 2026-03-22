@@ -37,7 +37,7 @@ export default function Home() {
       >
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6">
           <Sparkles className="w-4 h-4" />
-          <span>Лучшее из Telegram 2026</span>
+          <span>Полезные боты из Telegram 2026</span>
         </div>
         <h1 className="text-4xl md:text-6xl font-display font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 mb-6 leading-tight">
           Прокачай свой <br className="hidden md:block" />
