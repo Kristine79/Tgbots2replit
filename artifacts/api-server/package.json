@@ -17,8 +17,7 @@
     "drizzle-orm": "catalog:",
     "express": "^5",
     "geoip-lite": "^2.0.1",
-    "pino": "^9",
-    "pino-http": "^10"
+    "pino": "^9"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",
