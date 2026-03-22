@@ -1,7 +1,7 @@
 {
-  "name": "Лучшие Telegram Боты",
-  "short_name": "TG Боты",
-  "description": "Каталог лучших Telegram ботов с категориями и рейтингом",
+  "name": "Полезные Боты",
+  "short_name": "Полезные Боты",
+  "description": "Каталог полезных Telegram ботов с категориями и рейтингом",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#080c17",

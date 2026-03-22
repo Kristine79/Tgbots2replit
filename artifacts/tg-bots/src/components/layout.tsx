@@ -22,7 +22,7 @@ export function Layout({ children }: { children: ReactNode }) {
               <Bot className="w-6 h-6 text-white" />
             </div>
             <span className="font-display font-bold text-xl tracking-tight text-white group-hover:text-glow transition-all">
-              TG Боты
+              Полезные Боты
             </span>
           </Link>
         </div>
@@ -36,7 +36,7 @@ export function Layout({ children }: { children: ReactNode }) {
       {/* Footer */}
       <footer className="py-6 border-t border-white/10 mt-auto glass-panel border-x-0 border-b-0">
         <div className="max-w-7xl mx-auto px-4 text-center text-muted-foreground text-sm">
-          <p>© 2026 Лучшие Telegram Боты. Все права защищены.</p>
+          <p>© 2026 Полезные Боты. Все права защищены.</p>
         </div>
       </footer>
     </div>

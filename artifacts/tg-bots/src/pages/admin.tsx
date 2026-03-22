@@ -112,7 +112,7 @@ export default function AdminDashboard() {
             </div>
             <div>
               <span className="font-bold text-white">Панель администратора</span>
-              <span className="text-muted-foreground text-xs block leading-none">Telegram Боты</span>
+              <span className="text-muted-foreground text-xs block leading-none">Полезные Боты</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
