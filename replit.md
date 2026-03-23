@@ -6,16 +6,19 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 
 ## Artifacts
 
-### `artifacts/tg-bots` — Лучшие Telegram Боты (PWA)
-React + Vite web app at `/`. Directory of the best Telegram bots with glassmorphism Telegram 2026 design.
+### `artifacts/tg-bots` — Лучшие Telegram Боты
+Next.js 15 web app at `/`. Directory of the best Telegram bots with glassmorphism Telegram 2026 design.
+- App Router with `app/` directory structure
 - Search + filter by category + sort (popular/rating/name)
 - Bot cards with glassmorphism effects, rating, monthly users, tags
-- Bot detail page (`/bot/:id`)
-- PWA manifest for installability
+- Bot detail page (`/bot/[id]`)
+- Admin dashboard with bot CRUD and analytics at `/admin`
 - Uses React Query hooks from `@workspace/api-client-react`
+- Tailwind CSS v4 via `@tailwindcss/postcss`
 
 ## Stack
 
+- **Frontend**: Next.js 15 (App Router), React 19, Tailwind CSS v4
 - **Monorepo tool**: pnpm workspaces
 - **Node.js version**: 24
 - **Package manager**: pnpm

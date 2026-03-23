@@ -1,5 +1,7 @@
-import { Star, CheckCircle, ShieldAlert, Users, Sparkles, MessageSquare } from "lucide-react";
-import { Link } from "wouter";
+"use client";
+
+import { Star, CheckCircle, Users, Sparkles } from "lucide-react";
+import Link from "next/link";
 import { GlassCard } from "./ui/glass-card";
 import type { Bot } from "@workspace/api-client-react";
 
@@ -13,7 +15,6 @@ export function BotCard({ bot }: { bot: Bot }) {
   return (
     <Link href={`/bot/${bot.id}`} className="block outline-none">
       <GlassCard hoverable className="h-full flex flex-col p-5 group">
-        {/* Glow effect that follows hover (CSS simulation via opacity) */}
         <div className="absolute -inset-2 bg-gradient-to-r from-primary/0 via-primary/10 to-primary/0 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500 z-0" />
         
         <div className="relative z-10 flex gap-4 mb-4">
