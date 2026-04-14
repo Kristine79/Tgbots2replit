@@ -1,0 +1,193 @@
+{
+  "info": {
+    "name": "Admin Panel API",
+    "description": "API collection for Admin Panel endpoints testing",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "Admin Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"password\": \"{{admin_password}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/admin/login",
+          "host": ["{{base_url}}"],
+          "path": ["admin", "login"]
+        }
+      }
+    },
+    {
+      "name": "Get Admin Stats",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/admin/stats",
+          "host": ["{{base_url}}"],
+          "path": ["admin", "stats"]
+        }
+      }
+    },
+    {
+      "name": "Create Bot",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"@testbot\",\n  \"name\": \"Test Bot\",\n  \"description\": \"A test bot for demonstration\",\n  \"categoryId\": 1,\n  \"rating\": 4.5,\n  \"reviewCount\": 10,\n  \"isVerified\": true,\n  \"isPremium\": false,\n  \"tags\": [\"test\", \"demo\"],\n  \"monthlyUsers\": 1000,\n  \"iconEmoji\": \"🤖\",\n  \"telegramUrl\": \"https://t.me/testbot\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/admin/bots",
+          "host": ["{{base_url}}"],
+          "path": ["admin", "bots"]
+        }
+      }
+    },
+    {
+      "name": "Update Bot",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"@testbot_updated\",\n  \"name\": \"Updated Test Bot\",\n  \"description\": \"Updated description\",\n  \"categoryId\": 1,\n  \"rating\": 4.8,\n  \"reviewCount\": 15,\n  \"isVerified\": true,\n  \"isPremium\": true,\n  \"tags\": [\"test\", \"demo\", \"updated\"],\n  \"monthlyUsers\": 5000,\n  \"iconEmoji\": \"🚀\",\n  \"telegramUrl\": \"https://t.me/testbot_updated\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/admin/bots/1",
+          "host": ["{{base_url}}"],
+          "path": ["admin", "bots", "1"]
+        }
+      }
+    },
+    {
+      "name": "Delete Bot",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/admin/bots/1",
+          "host": ["{{base_url}}"],
+          "path": ["admin", "bots", "1"]
+        }
+      }
+    },
+    {
+      "name": "Error - No Auth",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/admin/stats",
+          "host": ["{{base_url}}"],
+          "path": ["admin", "stats"]
+        }
+      }
+    },
+    {
+      "name": "Error - Invalid Token",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer invalid-token-123"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/admin/stats",
+          "host": ["{{base_url}}"],
+          "path": ["admin", "stats"]
+        }
+      }
+    },
+    {
+      "name": "Error - Wrong Password",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"password\": \"wrongpassword\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/admin/login",
+          "host": ["{{base_url}}"],
+          "path": ["admin", "login"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "admin_password",
+      "value": "admin2026",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "admin-token-admin2026",
+      "type": "string"
+    }
+  ]
+}

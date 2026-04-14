@@ -16,6 +16,7 @@
     "cors": "^2",
     "drizzle-orm": "catalog:",
     "express": "^5",
+    "express-rate-limit": "^7.1.5",
     "geoip-lite": "^2.0.1",
     "pino": "^9"
   },

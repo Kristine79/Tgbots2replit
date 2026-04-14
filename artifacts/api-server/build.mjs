@@ -30,6 +30,11 @@ async function buildAll() {
     external: [
       "*.node",
       "geoip-lite",
+      "pg",
+      "zod",
+      "drizzle-orm",
+      "drizzle-orm/*",
+      "drizzle-zod",
       "sharp",
       "better-sqlite3",
       "sqlite3",

@@ -1,7 +1,8 @@
 import { Router, type IRouter, type Request, type Response, type NextFunction } from "express";
+import rateLimit from "express-rate-limit";
 import { db } from "@workspace/db";
 import { botsTable, categoriesTable, botViewsTable } from "@workspace/db/schema";
-import { eq, sql, gte, and } from "drizzle-orm";
+import { eq, sql, gte, and, count, countDistinct } from "drizzle-orm";
 import {
   AdminLoginBody,
   AdminLoginResponse,
@@ -13,8 +14,28 @@ import {
 
 const router: IRouter = Router();
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin2026";
+// ✅ Требовать обязательную переменную ADMIN_PASSWORD
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+if (!ADMIN_PASSWORD) {
+  throw new Error(
+    "ADMIN_PASSWORD environment variable is required. Please set it before starting the server."
+  );
+}
+
 const ADMIN_TOKEN = `admin-token-${ADMIN_PASSWORD}`;
+
+// ✅ Rate limiting для защиты от брутфорса (максимум 5 попыток за 15 минут)
+const loginRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 минут
+  max: 5, // максимум 5 попыток
+  message: "Too many login attempts, please try again later",
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req, res) => {
+    // Не применяем rate limit для других методов или путей
+    return req.method !== "POST";
+  },
+});
 
 function requireAdmin(req: Request, res: Response, next: NextFunction) {
   const auth = req.headers.authorization;
@@ -30,7 +51,7 @@ function requireAdmin(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
-router.post("/admin/login", (req, res) => {
+router.post("/admin/login", loginRateLimiter, (req, res) => {
   const parsed = AdminLoginBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ message: "Invalid request body" });
@@ -197,71 +218,74 @@ router.get("/admin/stats", requireAdmin, async (_req, res) => {
   const days7ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const days30ago = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-  const bots = await db.select().from(botsTable);
+  try {
+    // ✅ Оптимизация: Один запрос для получения всех агрегированных данных
+    const botsData = await db
+      .select({
+        botId: botsTable.id,
+        botName: botsTable.name,
+        botEmoji: botsTable.iconEmoji,
+        totalViews: sql<number>`count(${botViewsTable.id})::int`,
+        uniqueVisitors: sql<number>`count(distinct ${botViewsTable.ipHash})::int`,
+        last7Days: sql<number>`count(case when ${botViewsTable.viewedAt} >= ${days7ago} then 1 end)::int`,
+        last30Days: sql<number>`count(case when ${botViewsTable.viewedAt} >= ${days30ago} then 1 end)::int`,
+      })
+      .from(botsTable)
+      .leftJoin(botViewsTable, eq(botViewsTable.botId, botsTable.id))
+      .groupBy(botsTable.id, botsTable.name, botsTable.iconEmoji);
 
-  const stats = await Promise.all(
-    bots.map(async (bot) => {
-      const [totalRow] = await db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(botViewsTable)
-        .where(eq(botViewsTable.botId, bot.id));
+    // ✅ Параллельно получаем ежедневные просмотры за 30 дней
+    const dailyViews = await db
+      .select({
+        botId: botViewsTable.botId,
+        date: sql<string>`to_char(date_trunc('day', ${botViewsTable.viewedAt}), 'YYYY-MM-DD')`,
+        views: sql<number>`count(*)::int`,
+      })
+      .from(botViewsTable)
+      .where(gte(botViewsTable.viewedAt, days30ago))
+      .groupBy(botViewsTable.botId, sql`date_trunc('day', ${botViewsTable.viewedAt})`)
+      .orderBy(sql`date_trunc('day', ${botViewsTable.viewedAt})`);
 
-      const [uniqueRow] = await db
-        .select({ count: sql<number>`count(distinct ${botViewsTable.ipHash})::int` })
-        .from(botViewsTable)
-        .where(eq(botViewsTable.botId, bot.id));
+    // ✅ Параллельно получаем географический разбор
+    const geoBreakdown = await db
+      .select({
+        botId: botViewsTable.botId,
+        country: sql<string>`coalesce(${botViewsTable.country}, 'Неизвестно')`,
+        countryCode: sql<string>`coalesce(${botViewsTable.countryCode}, 'XX')`,
+        views: sql<number>`count(*)::int`,
+      })
+      .from(botViewsTable)
+      .groupBy(botViewsTable.botId, botViewsTable.country, botViewsTable.countryCode)
+      .orderBy(sql`count(*) desc`);
 
-      const [last7Row] = await db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(botViewsTable)
-        .where(and(eq(botViewsTable.botId, bot.id), gte(botViewsTable.viewedAt, days7ago)));
+    // ✅ Объединяем данные в one pass (вместо N+1 запросов)
+    const result = botsData
+      .map((bot) => ({
+        botId: bot.botId,
+        botName: bot.botName,
+        botEmoji: bot.botEmoji,
+        totalViews: bot.totalViews,
+        uniqueVisitors: bot.uniqueVisitors,
+        last7Days: bot.last7Days,
+        last30Days: bot.last30Days,
+        dailyViews: dailyViews
+          .filter((d) => d.botId === bot.botId)
+          .map((d) => ({ date: d.date, views: d.views })),
+        geoBreakdown: geoBreakdown
+          .filter((g) => g.botId === bot.botId)
+          .map((g) => ({
+            country: g.country,
+            countryCode: g.countryCode,
+            views: g.views,
+          })),
+      }))
+      .sort((a, b) => b.totalViews - a.totalViews);
 
-      const [last30Row] = await db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(botViewsTable)
-        .where(and(eq(botViewsTable.botId, bot.id), gte(botViewsTable.viewedAt, days30ago)));
-
-      const dailyRows = await db
-        .select({
-          date: sql<string>`to_char(date_trunc('day', ${botViewsTable.viewedAt}), 'YYYY-MM-DD')`,
-          views: sql<number>`count(*)::int`,
-        })
-        .from(botViewsTable)
-        .where(and(eq(botViewsTable.botId, bot.id), gte(botViewsTable.viewedAt, days30ago)))
-        .groupBy(sql`date_trunc('day', ${botViewsTable.viewedAt})`)
-        .orderBy(sql`date_trunc('day', ${botViewsTable.viewedAt})`);
-
-      const geoRows = await db
-        .select({
-          country: sql<string>`coalesce(${botViewsTable.country}, 'Неизвестно')`,
-          countryCode: sql<string>`coalesce(${botViewsTable.countryCode}, 'XX')`,
-          views: sql<number>`count(*)::int`,
-        })
-        .from(botViewsTable)
-        .where(eq(botViewsTable.botId, bot.id))
-        .groupBy(botViewsTable.country, botViewsTable.countryCode)
-        .orderBy(sql`count(*) desc`);
-
-      return {
-        botId: bot.id,
-        botName: bot.name,
-        botEmoji: bot.iconEmoji,
-        totalViews: totalRow?.count ?? 0,
-        uniqueVisitors: uniqueRow?.count ?? 0,
-        last7Days: last7Row?.count ?? 0,
-        last30Days: last30Row?.count ?? 0,
-        dailyViews: dailyRows.map((r) => ({ date: r.date, views: r.views })),
-        geoBreakdown: geoRows.map((r) => ({
-          country: r.country,
-          countryCode: r.countryCode,
-          views: r.views,
-        })),
-      };
-    })
-  );
-
-  const sorted = stats.sort((a, b) => b.totalViews - a.totalViews);
-  res.json(sorted);
+    res.json(result);
+  } catch (error) {
+    console.error("Error fetching stats:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 });
 
 export default router;
