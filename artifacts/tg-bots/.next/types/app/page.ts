@@ -1,4 +1,4 @@
-// File: /workspaces/Tgbots2replit/artifacts/tg-bots/app/page.tsx
+// File: /vercel/share/v0-project/artifacts/tg-bots/app/page.tsx
 import * as entry from '../../../app/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
