@@ -17,6 +17,6 @@
     "baseUrl": ".",
     "paths": { "@/*": ["./*"] }
   },
-  "include": ["next-env.d.ts", "app/**/*", "components/**/*", "lib/supabase/**/*", "lib/utils.ts", "lib/types.ts", "lib/bots.ts", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "artifacts", "lib/api-client-react", "lib/integrations", "lib/db", "lib/api-zod", "scripts"]
+  "include": ["next-env.d.ts", "app/**/*", "components/**/*", "lib/**/*", "middleware.ts", ".next/types/**/*.ts"],
+  "exclude": ["node_modules", "src"]
 }
